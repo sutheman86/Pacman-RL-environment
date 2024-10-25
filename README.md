@@ -2,24 +2,38 @@
 
 ### Setup Virtual Environment
 
-* First, set up python `venv`.
+* First, make sure you have `miniconda` installed and set up.
+    * [Miniconda Download Page](https://docs.anaconda.com/miniconda/miniconda-install/)
+
+* clone this repository and enter the directory
     ```
-    python -m venv .
+    git clone git@github.com:sutheman86/Pacman-RL-environment.git && cd Pacman-RL-environment
+    ```
+    * ***Note:*** use `ssh` since this repo is not public. Make sure to set up your ssh key!! [Tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
+
+* create conda environment `env` ***inside*** repo directory.
+    ```
+    conda create -p ./env
     ```
 
-* Activate the virtual environment (in the project root)
-    * On Windows:
+* activate this conda environment
     ```
-    ./Scripts/Activate
+    conda activate ./env
     ```
-    * On mac/Linux:
+
+* after created and activated the environment, current environment name should be:
     ```
-    source ./bin/activate
+    (/path/to/Pacman-RL-environment/env)
     ```
 
 ### Install Packages and gymnasium environment
 
-* Install required packages
+* **Install pip first** using conda
+    ```
+    conda install pip
+    ```
+
+* Install required packages using pip
     ```
     pip install babel copier Flask-Caching gym-notices gymnasium typing
     ```
