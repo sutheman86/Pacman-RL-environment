@@ -12,8 +12,13 @@ from .sprites import LifeSprites
 from .sprites import MazeSprites
 from .mazedata import MazeData
 
+class Options:
+    allowUserInput = False
+    def __init__(self, allowUserInput=False):
+        self.allowUserInput = allowUserInput
+
 class GameController(object):
-    def __init__(self):
+    def __init__(self, speedup=1.0):
         pygame.init()
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
@@ -37,6 +42,7 @@ class GameController(object):
         self.fruitNode = None
         self.mazedata = MazeData()
         self.assetpath = "assets/"
+        self.clockCycle = (int)(1000/speedup)
 
     def setBackground(self):
         self.background_norm = pygame.surface.Surface(SCREENSIZE).convert()
@@ -103,7 +109,7 @@ class GameController(object):
         
 
     def update(self):
-        dt = self.clock.tick(30) / 200.0
+        dt = self.clock.tick(30) / self.clockCycle
         self.textgroup.update(dt)
         self.pellets.update(dt)
         if not self.pause.paused:

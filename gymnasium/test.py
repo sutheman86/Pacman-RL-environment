@@ -6,7 +6,7 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # 初始化環境
-env = gymnasium.make('gymnasium_env/PacmanGymEnv')
+env = gymnasium.make('gymnasium_env/PacmanGymEnv', speedup=5.0)
 obs, info = env.reset()
 
 # 設定最多 100 步

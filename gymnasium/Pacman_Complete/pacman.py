@@ -4,6 +4,8 @@ from .vector import Vector2
 from .constants import *
 from .entity import Entity
 from .sprites import PacmanSprites
+from . import run
+
 
 class Pacman(Entity):
     def __init__(self, node):
@@ -15,6 +17,10 @@ class Pacman(Entity):
         self.alive = True
         self.sprites = PacmanSprites(self)
         self.facing = LEFT
+        if run.Options.allowUserInput:
+            self.directionInputAgent = self.getValidKey
+        else:
+            self.directionInputAgent = self.getFacing
 
     def reset(self):
         Entity.reset(self)
@@ -31,7 +37,7 @@ class Pacman(Entity):
     def update(self, dt):	
         self.sprites.update(dt)
         self.position += self.directions[self.direction]*self.speed*dt
-        direction = self.getValidKey()
+        direction = self.directionInputAgent()
         if self.overshotTarget():
             self.node = self.target
             if self.node.neighbors[PORTAL] is not None:
@@ -49,12 +55,24 @@ class Pacman(Entity):
             if self.oppositeDirection(direction):
                 self.reverseDirection()
 
-    def getValidKey(self):
+    def getFacing(self):
         key_pressed = pygame.key.get_pressed()
         if self.alive:
             return self.facing
         else:
             return STOP  
+
+    def getValidKey(self):
+        key_pressed = pygame.key.get_pressed()
+        if key_pressed[K_UP]:
+            return UP
+        if key_pressed[K_DOWN]:
+            return DOWN
+        if key_pressed[K_LEFT]:
+            return LEFT
+        if key_pressed[K_RIGHT]:
+            return RIGHT
+        return STOP  
 
     def eatPellets(self, pelletList):
         for pellet in pelletList:

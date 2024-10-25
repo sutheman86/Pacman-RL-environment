@@ -3,10 +3,11 @@ from gymnasium import spaces
 import numpy as np
 import pygame
 from Pacman_Complete.run import GameController
+from Pacman_Complete.run import Options
 from Pacman_Complete.constants import *
 
 class PacmanGymEnv(gym.Env):
-    def __init__(self):
+    def __init__(self, speedup=1.0):
         super(PacmanGymEnv, self).__init__()
         
         # 設定動作空間: 上、下、左、右
@@ -17,7 +18,8 @@ class PacmanGymEnv(gym.Env):
                                             shape=(SCREENHEIGHT, SCREENWIDTH, 3), dtype=np.uint8)
         
         # 初始化遊戲控制器
-        self.game = GameController()
+        self.game = GameController(speedup=speedup)
+        self.options = Options(allowUserInput=False)
         self.game.startGame()
     
     def reset(self, seed=None, options=None):
@@ -31,7 +33,7 @@ class PacmanGymEnv(gym.Env):
         """根據動作更新遊戲狀態並返回觀察值、回報、完成狀態、額外資訊"""
         
         # 根據動作選擇方向
-        directions = [UP, DOWN, LEFT, RIGHT]
+        directions = [STOP, UP, DOWN, LEFT, RIGHT]
         if action in range(4):
             self.game.pacman.facing = directions[action]
         
