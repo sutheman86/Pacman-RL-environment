@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 colab = True
 
-env = gymnasium.make('gymnasium_env/PacmanGymEnv', speedup=5.0,render_mode='human')
+env = gymnasium.make('gymnasium_env/PacmanGymEnv', speedup=5.0,render_mode='rgb_array')
 obs, info = env.reset()
 
 root = tk.Tk()
