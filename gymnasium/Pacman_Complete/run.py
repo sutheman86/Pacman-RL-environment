@@ -1,4 +1,6 @@
 import pygame
+import os
+
 from pygame.locals import *
 from .constants import *
 from .pacman import Pacman
@@ -18,7 +20,10 @@ class Options:
         self.allowUserInput = allowUserInput
 
 class GameController(object):
-    def __init__(self, speedup=1.0):
+    screen = None
+    def __init__(self, speedup=1.0, headless=False):
+        if headless:
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
@@ -42,7 +47,7 @@ class GameController(object):
         self.fruitNode = None
         self.mazedata = MazeData()
         self.assetpath = "assets/"
-        self.clockCycle = (int)(1000/speedup)
+        self.clockCycle = (1000.0/speedup)
 
     def setBackground(self):
         self.background_norm = pygame.surface.Surface(SCREENSIZE).convert()
@@ -109,7 +114,7 @@ class GameController(object):
         
 
     def update(self):
-        dt = self.clock.tick(30) / self.clockCycle
+        dt = self.clock.tick(60) / self.clockCycle
         self.textgroup.update(dt)
         self.pellets.update(dt)
         if not self.pause.paused:
@@ -163,6 +168,8 @@ class GameController(object):
                         else:
                             self.textgroup.showText(PAUSETXT)
                             #self.hideEntities()
+                elif event.key == K_ESCAPE:
+                        exit()
 
     def checkPelletEvents(self):
         pellet = self.pacman.eatPellets(self.pellets.pelletList)

@@ -2,12 +2,17 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import pygame
+import matplotlib 
+from Pacman_Complete.pauser import Pause
 from Pacman_Complete.run import GameController
 from Pacman_Complete.run import Options
 from Pacman_Complete.constants import *
+import matplotlib.pyplot as plt
+from PIL import Image
 
 class PacmanGymEnv(gym.Env):
-    def __init__(self, speedup=1.0):
+    metadata = {'render_modes': ['human', 'rgb_array'], 'render_fps': 60}
+    def __init__(self, speedup=1.0, render_mode='rgb_array'):
         super(PacmanGymEnv, self).__init__()
         
         # 設定動作空間: 上、下、左、右
@@ -18,8 +23,13 @@ class PacmanGymEnv(gym.Env):
                                             shape=(SCREENHEIGHT, SCREENWIDTH, 3), dtype=np.uint8)
         
         # 初始化遊戲控制器
-        self.game = GameController(speedup=speedup)
+        if render_mode == 'rgb_array':
+            self.game = GameController(speedup=speedup,headless=True)
+        else:
+            self.game = GameController(speedup=speedup)
+
         self.options = Options(allowUserInput=False)
+        self.render_mode = render_mode
         self.game.startGame()
     
     def reset(self, seed=None, options=None):
@@ -29,6 +39,9 @@ class PacmanGymEnv(gym.Env):
         observation = self._get_observation()
         return observation, {}
     
+    def pauseforcapture(self, state=True):
+        self.game.pause = Pause(state)
+
     def step(self, action):
         """根據動作更新遊戲狀態並返回觀察值、回報、完成狀態、額外資訊"""
         
@@ -47,9 +60,15 @@ class PacmanGymEnv(gym.Env):
         
         return observation, reward, done, {}
     
-    def render(self, mode='human'):
+    def render(self):
         """顯示遊戲畫面"""
-        self.game.render()
+        if self.render_mode == 'human':
+            self.game.render()
+            # 顯示當前觀察、獎勵及步數
+        if self.render_mode == 'rgb_array':
+            return self._get_observation()
+
+
     
     def _get_observation(self):
         """提取當前畫面並返回觀察數據"""
