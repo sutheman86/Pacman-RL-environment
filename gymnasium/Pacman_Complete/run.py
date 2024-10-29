@@ -48,6 +48,7 @@ class GameController(object):
         self.mazedata = MazeData()
         self.assetpath = "assets/"
         self.clockCycle = (1000.0/speedup)
+        self.speedup = speedup
 
     def setBackground(self):
         self.background_norm = pygame.surface.Surface(SCREENSIZE).convert()
@@ -114,7 +115,8 @@ class GameController(object):
         
 
     def update(self):
-        dt = self.clock.tick(60) / self.clockCycle
+        dt = self.clock.tick(60) / 1000.0
+        dt *= self.speedup
         self.textgroup.update(dt)
         self.pellets.update(dt)
         if not self.pause.paused:
@@ -252,6 +254,7 @@ class GameController(object):
         self.level = 0
         self.pause.paused = True
         self.getready = True
+        self.readytimer = 0
         self.fruit = None
         self.startGame()
         self.score = 0
@@ -295,12 +298,6 @@ class GameController(object):
 
         pygame.display.update()
 
-
-if __name__ == "__main__":
-    game = GameController()
-    game.startGame()
-    while True:
-        game.update()
 
 
 

@@ -1,4 +1,5 @@
 import numpy
+from numpy._typing import NDArray
 import gymnasium_env
 import gymnasium
 import warnings
@@ -10,42 +11,41 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # 忽略 DeprecationWarning
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-colab = True
 
-env = gymnasium.make('gymnasium_env/PacmanGymEnv', speedup=5.0,render_mode='rgb_array')
+env = gymnasium.make('gymnasium_env/PacmanGymEnv', speedup=10,render_mode='human')
 obs, info = env.reset()
-
-root = tk.Tk()
-root.title("Tkinter Window with Matplotlib Image")
-root.geometry("800x600")
+preprocessed_frame = []
+output_dir = "../GIF/"
+max_episode = 100
+episode = 0
+output_GIF = True
 
 def rgb_array_loop():
+    episode = 0
     for step in range(1000000):  
         action = env.action_space.sample()
         obs, reward, done, info = env.step(action)
         #print(f"Step: {step + 1}, Action: {action}, Reward: {reward}, Done: {done}")
+        preprocessed_frame.append(obs);
         if done:
-            print("Episode finished!")
-            print(step)
+            print(f"Episode: {episode}, steps: {step}")
+            if output_GIF:
+                process_gif()
+            if episode == max_episode:
+                break;
+            else:
+                episode += 1
             env.reset()
+            
 
-def rgb_array_loop_colab():
-    for step in range(1000000):  
-        action = env.action_space.sample()
-        obs, reward, done, info = env.step(action)
-        a = env.render()
-        a = Image.fromarray(a)
-        plt.imshow(a)
-        plt.axis('off')
-        plt.show(block=False)
-        plt.pause(0.001)
-        plt.clf()
-        #print(f"Step: {step + 1}, Action: {action}, Reward: {reward}, Done: {done}")
-        if done:
-            print("Episode finished!")
-            print(step)
-            env.reset()
-
+def process_gif():
+    frames = []
+    output_path = output_dir + "episode_" + str(episode) + ".gif"
+    print(f"processing {output_path}...")
+    for i in preprocessed_frame:
+        frames.append(Image.fromarray(i));
+    frames[0].save(output_path, save_all=True, append_images=frames[1:], duration=100, loop=1)
+    print("GIF exported!")
 
 def human_loop():
     for step in range(1000000):  
@@ -58,10 +58,9 @@ def human_loop():
             print(step)
             env.reset()
 
-if env.render_mode == 'human':
+if env.render_mode == "human":
     human_loop()
-elif colab == True:
-    rgb_array_loop_colab()
 else:
     rgb_array_loop()
+
 env.close()

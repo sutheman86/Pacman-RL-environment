@@ -12,7 +12,7 @@ from PIL import Image
 
 class PacmanGymEnv(gym.Env):
     metadata = {'render_modes': ['human', 'rgb_array'], 'render_fps': 60}
-    def __init__(self, speedup=1.0, render_mode='rgb_array'):
+    def __init__(self, speedup=1, render_mode='rgb_array'):
         super(PacmanGymEnv, self).__init__()
         
         # 設定動作空間: 上、下、左、右
@@ -31,6 +31,7 @@ class PacmanGymEnv(gym.Env):
         self.options = Options(allowUserInput=False)
         self.render_mode = render_mode
         self.game.startGame()
+        self.speedup = speedup
     
     def reset(self, seed=None, options=None):
         """重置環境並返回初始觀察值"""
