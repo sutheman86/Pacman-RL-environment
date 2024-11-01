@@ -2,13 +2,17 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import pygame
+import matplotlib 
+from Pacman_Complete.pauser import Pause
 from Pacman_Complete.run import GameController
 from Pacman_Complete.run import Options
 from Pacman_Complete.constants import *
+import matplotlib.pyplot as plt
+from PIL import Image
 
 class PacmanGymEnv(gym.Env):
     metadata = {'render_modes': ['human', 'rgb_array'], 'render_fps': 60}
-    def __init__(self, speedup=1.0, render_mode='rgb_array'):
+    def __init__(self, speedup=1, render_mode='rgb_array'):
         super(PacmanGymEnv, self).__init__()
         
         # 設定動作空間: 上、下、左、右
@@ -23,8 +27,9 @@ class PacmanGymEnv(gym.Env):
             self.game = GameController(speedup=speedup,headless=True)
         else:
             self.game = GameController(speedup=speedup)
-        self.render_mode = render_mode
+
         self.options = Options(allowUserInput=False)
+        self.render_mode = render_mode
         self.game.startGame()
         self.speedup = speedup
     
@@ -35,6 +40,9 @@ class PacmanGymEnv(gym.Env):
         observation = self._get_observation()
         return observation, {}
     
+    def pauseforcapture(self, state=True):
+        self.game.pause = Pause(state)
+
     def step(self, action):
         """根據動作更新遊戲狀態並返回觀察值、回報、完成狀態、額外資訊"""
         
@@ -48,12 +56,10 @@ class PacmanGymEnv(gym.Env):
         
         # 獲取觀察值、回報和完成狀態
         observation = self._get_observation()
+        reward = self.game.score  # 使用當前得分作為回報
         done = (self.game.lives == 0)  # Pac-Man 被吃掉時遊戲結束
-        reward = self.game.reward  # 使用當前得分作為回報
         
-        info = {"lives":self.game.lives,"total_score":self.game.score}
-        
-        return observation, reward, done, info
+        return observation, reward, done, {}
     
     def render(self):
         """顯示遊戲畫面"""
@@ -62,6 +68,8 @@ class PacmanGymEnv(gym.Env):
             # 顯示當前觀察、獎勵及步數
         if self.render_mode == 'rgb_array':
             return self._get_observation()
+
+
     
     def _get_observation(self):
         """提取當前畫面並返回觀察數據"""
