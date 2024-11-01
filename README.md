@@ -1,62 +1,11 @@
-# ML Final Pacman environment
+## Modified files:
+1. gymnasium/test.ipynb: Combine the customized gym with DQN (can't install pytorch wtf)
+2. gymnasium/test.py: Change render method to store gif of one episode
+3. gymnasium/Pacman_Complete/run.py: Customized the reward policy
+4. gymnasium/gymnasium_env/envs/pacman_word.py: Change the reword from self.game.score to self.game.reward
 
-### Setup Virtual Environment
+## Modified folder:
+1. Gif: store to gif of each episode
 
-* First, make sure you have `miniconda` installed and set up.
-    * [Miniconda Download Page](https://docs.anaconda.com/miniconda/miniconda-install/)
 
-* clone this repository and enter the directory
-    ```
-    git clone git@github.com:sutheman86/Pacman-RL-environment.git && cd Pacman-RL-environment
-    ```
-    * ***Note:*** use `ssh` since this repo is not public. Make sure to set up your ssh key!! [Tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
 
-* create conda environment `env` ***inside*** repo directory.
-    ```
-    conda create -p ./env
-    ```
-
-* activate this conda environment
-    ```
-    conda activate ./env
-    ```
-
-* after created and activated the environment, current environment name should be:
-    ```
-    (/path/to/Pacman-RL-environment/env)
-    ```
-
-### Install Packages and gymnasium environment
-
-* **Install pip first** using conda
-    ```
-    conda install pip
-    ```
-
-* Install required packages using pip
-    ```
-    pip install babel copier Flask-Caching gym-notices gymnasium typing
-    ```
-    * note that `pygame` package is already installed as requirement for `gymnasium`
-
-* go to `gymnasium` directory
-    ```
-    cd gymnasium
-    ```
-
-* install `gymnasium_env` environment
-    ```
-    pip install -e .
-    ```
-
-### Test
-
-* To test model training, run:
-    ```
-    python test.py
-    ```
-
-* To *run pacman only* , run:
-    ```
-    python gameonly.py
-    ```

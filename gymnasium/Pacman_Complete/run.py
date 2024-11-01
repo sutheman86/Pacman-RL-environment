@@ -31,8 +31,11 @@ class GameController(object):
         self.readytimer = 0
         self.readyTime = 3
         self.level = 0
-        self.lives = 5
+        self.lives = 3
         self.score = 0
+
+        self.reward = 0
+
         self.textgroup = TextGroup()
         self.lifesprites = LifeSprites(self.lives)
         self.flashBG = False
@@ -112,6 +115,7 @@ class GameController(object):
         dt = self.clock.tick(30) / self.clockCycle
         self.textgroup.update(dt)
         self.pellets.update(dt)
+        self.reward = 0
         if not self.pause.paused:
             self.ghosts.update(dt)      
             if self.fruit is not None:
@@ -169,6 +173,7 @@ class GameController(object):
         if pellet:
             self.pellets.numEaten += 1
             self.updateScore(pellet.points)
+            self.reward +=9
             if self.pellets.numEaten == 30:
                 self.ghosts.inky.startNode.allowAccess(RIGHT, self.ghosts.inky)
             if self.pellets.numEaten == 70:
@@ -176,6 +181,7 @@ class GameController(object):
             self.pellets.pelletList.remove(pellet)
             if pellet.name == POWERPELLET:
                 self.ghosts.startFreight()
+                self.reward +=1
             if self.pellets.isEmpty():
                 self.flashBG = True
                 self.hideEntities()
@@ -196,11 +202,13 @@ class GameController(object):
                 elif ghost.mode.current is not SPAWN:
                     if self.pacman.alive:
                         self.lives -=  1
+                        self.reward -=20
                         self.lifesprites.removeImage()
                         self.pacman.die()               
                         self.ghosts.hide()
                         if self.lives <= 0:
                             self.textgroup.showText(GAMEOVERTXT)
+                            self.reward -=50
                             self.pause.setPause(pauseTime=3, func=self.restartGame)
                         else:
                             self.pause.setPause(pauseTime=3, func=self.resetLevel)
@@ -213,6 +221,7 @@ class GameController(object):
         if self.fruit is not None:
             if self.pacman.collideCheck(self.fruit):
                 self.updateScore(self.fruit.points)
+                self.reward +=10
                 self.textgroup.addText(str(self.fruit.points), WHITE, self.fruit.position.x, self.fruit.position.y, 8, time=1)
                 fruitCaptured = False
                 for fruit in self.fruitCaptured:
@@ -241,8 +250,8 @@ class GameController(object):
         self.textgroup.updateLevel(self.level)
 
     def restartGame(self):
-        self.lives = 5
-        self.level = 0
+        self.lives = 3
+        self.level = 1
         self.pause.paused = True
         self.getready = True
         self.fruit = None

@@ -42,14 +42,20 @@ class PacmanGymEnv(gym.Env):
         
         # 獲取觀察值、回報和完成狀態
         observation = self._get_observation()
-        reward = self.game.score  # 使用當前得分作為回報
         done = (self.game.lives == 0)  # Pac-Man 被吃掉時遊戲結束
+        reward = self.game.reward  # 使用當前得分作為回報
         
-        return observation, reward, done, {}
+        info = {"lives":self.game.lives,"total_score":self.game.score}
+        
+        return observation, reward, done, info
     
     def render(self, mode='human'):
         """顯示遊戲畫面"""
-        self.game.render()
+        if mode == 'rgb':
+            return self._get_observation()  # 返回 RGB 格式的圖像數據
+        elif mode == 'human':
+            self.game.render()  # 顯示遊戲畫面
+            return None
     
     def _get_observation(self):
         """提取當前畫面並返回觀察數據"""
