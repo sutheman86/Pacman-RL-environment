@@ -59,7 +59,6 @@ class PacmanGymEnv(gym.Env):
         """顯示遊戲畫面"""
         if self.render_mode == 'human':
             self.game.render()
-            # 顯示當前觀察、獎勵及步數
         if self.render_mode == 'rgb_array':
             return self._get_observation()
     

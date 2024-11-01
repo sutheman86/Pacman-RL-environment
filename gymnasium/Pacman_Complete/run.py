@@ -1,4 +1,6 @@
 import pygame
+import os
+
 from pygame.locals import *
 from .constants import *
 from .pacman import Pacman
@@ -18,7 +20,9 @@ class Options:
         self.allowUserInput = allowUserInput
 
 class GameController(object):
-    def __init__(self, speedup=1.0):
+    def __init__(self, speedup=1.0, headless=False):
+        if headless:
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
@@ -254,6 +258,7 @@ class GameController(object):
         self.level = 1
         self.pause.paused = True
         self.getready = True
+        self.readytimer = 0
         self.fruit = None
         self.startGame()
         self.score = 0

@@ -12,12 +12,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
-env = gymnasium.make('gymnasium_env/PacmanGymEnv', speedup=10,render_mode='human')
+env = gymnasium.make('gymnasium_env/PacmanGymEnv', speedup=10,render_mode='rgb_array')
 obs, info = env.reset()
 preprocessed_frame = []
 output_dir = "../GIF/"
 max_episode = 100
-episode = 0
 output_GIF = True
 
 def rgb_array_loop():
@@ -30,7 +29,7 @@ def rgb_array_loop():
         if done:
             print(f"Episode: {episode}, steps: {step}")
             if output_GIF:
-                process_gif()
+                process_gif(episode)
             if episode == max_episode:
                 break;
             else:
@@ -38,7 +37,7 @@ def rgb_array_loop():
             env.reset()
             
 
-def process_gif():
+def process_gif(episode):
     frames = []
     output_path = output_dir + "episode_" + str(episode) + ".gif"
     print(f"processing {output_path}...")
