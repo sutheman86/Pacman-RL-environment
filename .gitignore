@@ -205,5 +205,5 @@ gymnasium/log
 
 # asset file in the project root (it should be in gymnasium/)
 assets/
-/assets
-/setup.sh
+assets
+setup.sh
