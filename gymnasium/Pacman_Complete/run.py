@@ -116,7 +116,7 @@ class GameController(object):
         
 
     def update(self):
-        dt = self.clock.tick(60) / self.clockCycle
+        dt = self.clock.tick(30) / self.clockCycle
         self.textgroup.update(dt)
         self.pellets.update(dt)
         self.reward = 0

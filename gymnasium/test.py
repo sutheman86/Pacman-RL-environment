@@ -1,12 +1,7 @@
-import numpy
-from numpy._typing import NDArray
 import gymnasium_env
 import gymnasium
 import warnings
 from PIL import Image
-import matplotlib.pyplot as plt
-import tkinter as tk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # 忽略 DeprecationWarning
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -27,13 +22,13 @@ def rgb_array_loop():
         #print(f"Step: {step + 1}, Action: {action}, Reward: {reward}, Done: {done}")
         preprocessed_frame.append(obs);
         if done:
-            print(f"Episode: {episode}, steps: {step}")
-            if output_GIF:
+            print(f"Episode: {episode}, steps: {step}") 
+            if output_GIF: 
                 process_gif(episode)
-            if episode == max_episode:
-                break;
-            else:
-                episode += 1
+                if episode == max_episode:
+                    break;
+                else:
+                    episode += 1
             env.reset()
             
 

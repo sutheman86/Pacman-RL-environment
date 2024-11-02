@@ -186,7 +186,20 @@ pyvenv.cfg
 pip-selfcheck.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,venv
+
+# pycache from other directory
 gymnasium/Pacman_Complete/__pycache__
+gymnasium/gymnasium_env/__pycache__
+gymnasium/gymnasium_env/envs/__pycache__
+
+# venv or conda directory
 env/
-GIF/
 .conda/
+
+# saves, including GIF and model directory
+GIF/
+save/
+
+# log came out of nowhere...
+gymnasium/log
+assets/

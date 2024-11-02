@@ -11,26 +11,26 @@
     ```
     * ***Note:*** use `ssh` since this repo is not public. Make sure to set up your ssh key!! [Tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
 
-* create conda environment `env` ***inside*** repo directory.
+* Create conda environment ***DON'T FORGET TO SPECIFY PYTHON VERSION TO 3.10***
     ```
-    conda create -p ./env
+    conda create -n pacman-RL-environment python=3.10
     ```
 
 * activate this conda environment
     ```
-    conda activate ./env
+    conda activate -n pacman-RL-environment
     ```
 
 * after created and activated the environment, current environment name should be:
     ```
-    (/path/to/Pacman-RL-environment/env)
+    (pacman-RL-environment)
     ```
 
 ### Install Packages and gymnasium environment
 
-* **Install pip first** using conda
+* Use conda to install `pytorch`
     ```
-    conda install pip
+    conda install pytorch
     ```
 
 * Install required packages using pip
@@ -60,3 +60,11 @@
     ```
     python gameonly.py
     ```
+
+### Run `pacman_world.ipynb`
+
+* Open it with vscode, run the cell directly
+
+* vscode should ask you which kernel to use. First, choose `Python Environments`
+
+* Then choose `Pacman-RL-environment`.

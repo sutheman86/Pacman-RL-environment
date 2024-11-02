@@ -16,7 +16,7 @@ class PacmanGymEnv(gym.Env):
         super(PacmanGymEnv, self).__init__()
         
         # 設定動作空間: 上、下、左、右
-        self.action_space = spaces.Discrete(4)  # 例如：0=上, 1=下, 2=左, 3=右
+        self.action_space = spaces.Discrete(5)  # 例如：0=上, 1=下, 2=左, 3=右
         
         # 設定觀察空間: 將遊戲畫面作為觀察
         self.observation_space = spaces.Box(low=0, high=255, 
@@ -48,7 +48,7 @@ class PacmanGymEnv(gym.Env):
         
         # 根據動作選擇方向
         directions = [STOP, UP, DOWN, LEFT, RIGHT]
-        if action in range(4):
+        if action in range(5):
             self.game.pacman.facing = directions[action]
         
         # 更新遊戲狀態
