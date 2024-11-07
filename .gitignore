@@ -207,3 +207,6 @@ gymnasium/log
 assets/
 assets
 setup.sh
+src/assets
+src/assets/
+
