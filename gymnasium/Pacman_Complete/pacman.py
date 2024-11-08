@@ -56,7 +56,7 @@ class Pacman(Entity):
                 self.reverseDirection()
 
     def getFacing(self):
-        key_pressed = pygame.key.get_pressed()
+        # key_pressed = pygame.key.get_pressed()
         if self.alive:
             return self.facing
         else:

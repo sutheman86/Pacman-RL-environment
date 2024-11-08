@@ -127,8 +127,8 @@ class GameController(object):
             afterPauseMethod()
         self.checkEvents()
         self.render()
-        if self.reward == 0:
-            self.reward = -1
+       # if self.reward == 0:
+       #     self.reward = -2
 
     def checkEvents(self):
         for event in pygame.event.get():
@@ -150,7 +150,7 @@ class GameController(object):
         if pellet:
             self.pellets.numEaten += 1
             self.updateScore(pellet.points)
-            self.reward += 50
+            self.reward += 100
             if self.pellets.numEaten == 30:
                 self.ghosts.inky.startNode.allowAccess(RIGHT, self.ghosts.inky)
             if self.pellets.numEaten == 70:

@@ -6,9 +6,10 @@ import dqn
 import env_wrapper
 import torch
 import os
+import warnings
 
 env_name = 'gymnasium_env/PacmanGymEnv'
-env = gymnasium.make(env_name, speedup = 5.0);
+env = gymnasium.make(env_name, speedup = 4.0);
 env_pacman = env_wrapper.PacmanEnvWrapper(env, k=4, img_size=(84,84))
 
 stack_frames = 4
@@ -21,13 +22,13 @@ agent = dqn.DeepQNetwork(
         qnet = dqn.QNet,
         device = device,
         learning_rate = 2e-4,
-        reward_decay = 0.99,
+        reward_decay = 0.9,
         replace_target_iter = 1000,
-        memory_size = 10000,
+        memory_size = 100000,
         batch_size = 32,)
 
 gif_dir = os.path.join(os.getcwd(), '..', 'GIF')
 save_dir = os.path.join(os.getcwd(), '..', 'save')
 
 
-util.train(env_pacman, agent, stack_frames, img_size, save_path=save_dir, max_steps=600000)
+util.train(env_pacman, agent, stack_frames, img_size, save_path=save_dir, max_steps=1000000)

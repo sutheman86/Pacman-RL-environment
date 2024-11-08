@@ -33,7 +33,7 @@ def play(env, agent, stack_frames, img_size):
         total_reward += reward
         print('\rStep: {:3d} | Reward: {:.3f} / {:.3f} | Action: {:.3f} | Info: {}'.format(step, reward, total_reward, action, info[0]), end="")
 
-        if done or step> 2000:
+        if done or step > 2000:
             print()
             break
 
@@ -115,7 +115,7 @@ def train(env, agent, stack_frames, img_size, save_path="save", max_steps=100000
                 save_gif(img_buffer, "train_" + str(total_step).zfill(6) + ".gif")
                 print("Done !!")
 
-            if done or step > 800:
+            if done or step > 2000:
                 episode += 1
                 print()
                 break

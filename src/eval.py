@@ -8,7 +8,7 @@ import torch
 import os
 
 env_name = 'gymnasium_env/PacmanGymEnv'
-env = gymnasium.make(env_name, speedup = 5.0);
+env = gymnasium.make(env_name, speedup = 1.0, render_mode='human');
 env_pacman = env_wrapper.PacmanEnvWrapper(env, k=4, img_size=(84,84))
 
 stack_frames = 4
@@ -21,7 +21,7 @@ agent = dqn.DeepQNetwork(
         qnet = dqn.QNet,
         device = device,
         learning_rate = 2e-4,
-        reward_decay = 0.99,
+        reward_decay = 0.9,
         replace_target_iter = 1000,
         memory_size = 10000,
         batch_size = 32,)
