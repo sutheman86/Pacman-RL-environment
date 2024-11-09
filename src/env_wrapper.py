@@ -6,7 +6,7 @@ class PacmanEnvWrapper(gym.Wrapper):
     def __init__(self, env, k, img_size=(84,84), env_name = 'gymnasium_env/PacmanGymEnv'):
         gym.Wrapper.__init__(self, env)
         self.k = k
-        self.env = gym.make(env_name, speedup=1.0)
+        self.env = env
         self.img_size = img_size
         obs_shape = env.observation_space.shape
         self.observation_space = gym.spaces.Box(low=0.0, high=1.0, shape=(k, img_size[0], img_size[1]), dtype=np.float32)
