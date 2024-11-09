@@ -9,7 +9,7 @@ def save_gif(img_buffer, fname, gif_path=os.path.join(os.getcwd(), '..', 'GIF'))
         os.makedirs(gif_path)
     img_buffer[0].save(os.path.join(gif_path, fname), save_all=True, append_images=img_buffer[1:], duration=3, loop=0)
 
-def play(env, agent, stack_frames, img_size):
+def play(env, agent, stack_frames, img_size, randomized_ratio):
     # Reset environment.
     state = env.reset()
     img_buffer = [Image.fromarray(state[0]*255)]
@@ -21,7 +21,7 @@ def play(env, agent, stack_frames, img_size):
     # One episode.
     while True:
         # Select action.
-        action = agent.choose_action(state, 1)
+        action = agent.choose_action(state, randomized_ratio)
 
         # Get next stacked state.
         state_next, reward, done, info = env.step(action)
@@ -111,7 +111,7 @@ def train(env, agent, stack_frames, img_size, save_path="save", max_steps=100000
                     fname="qnet.pt"
                 )
                 print("Generate GIF ...")
-                img_buffer = play(env, agent, stack_frames, img_size)
+                img_buffer = play(env, agent, stack_frames, img_size, 0.2)
                 save_gif(img_buffer, "train_" + str(total_step).zfill(6) + ".gif")
                 print("Done !!")
 

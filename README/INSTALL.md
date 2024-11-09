@@ -10,6 +10,7 @@
     git clone git@github.com:sutheman86/Pacman-RL-environment.git && cd Pacman-RL-environment
     ```
     * ***Note:*** use `ssh` since this repo is not public. Make sure to set up your ssh key!! [Tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
+    > or download this repo as zip file and extract it
 
 * Create conda environment ***DON'T FORGET TO SPECIFY PYTHON VERSION TO 3.10***
     ```
@@ -18,7 +19,7 @@
 
 * activate this conda environment
     ```
-    conda activate -n pacman-RL-environment
+    conda activate pacman-RL-environment
     ```
 
 * after created and activated the environment, current environment name should be:
