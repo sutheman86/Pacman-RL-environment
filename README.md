@@ -30,14 +30,20 @@ Here are ***GAME LOGIC*** changes done for training.
     - [x] combine DQN algorithm from `pacman-test.ipynb` to `pacman-world.ipynb`
 - [x] provide script to train and evaluate model conveniently
     > to train model, run `python train.py` (or `!python train.py` in colab notebook.)
-- [ ] make `Pacman_Complete` to return necessary info for `pacman_world.py` to calculate reward.
+- [ ] ~~make `Pacman_Complete` to return necessary info for `pacman_world.py` to calculate reward.~~
+    > It turns out it's better to calculate reward in the game, maybe I'll change my mind later...
+    
 - [ ] ~~Implement multi-agent environment (we want to train ghost and pacman at the same time.)~~ ***Finish Training Pacman First***
     > This can be done by modifying `gymnasium` environment, but we'll switch too `pettingzoo` if needed. (Which provides similar interface to `gymnasium`)
 
 #### Training
 
 - [ ] implement `Curiosity`
-- [ ] Use `Double DQN`, which is better than the original one.
+- [x] Use `Double DQN`, which is better than the original one.
+- [x] Use `Dueling DQN`
+    > maybe combine them into `Double Dueling DQN`?
+- [ ] Experiment with Rewards
+    > (from sutheman86: I have my custom reward implemented in `sutheman` branch)
 
 #### Apply Curriculum Learning method
     
@@ -45,14 +51,15 @@ Here are ***GAME LOGIC*** changes done for training.
 
 * So now we want to split the process into the easier ones and training agent to finish each of them.
 
-- [ ] Stage 1. Without ghost, pacman should finish the game in 800~1000 steps
-    > We don't know what's the minimum required time to walk through the whole maze. So the number might be too small.
+- [x] Stage 1. Without ghost, pacman should finish the game in 800~1000 steps
+    > Done. he could finish the game in ~1200 steps
 
-- [ ] Stage 2. Add one ghost into the game
-    > We realized that even with one ghost, it's still too difficult for pacman. So we will nerf ghost's speed first.
+- [ ] Stage 2. Add one ghost into the game:
+    - [ ] Stage 2.1: the ghost is half of its original speed.
+    - [ ] Stage 2.2: ghost is in its original speed.
 
 - [ ] etc. etc. Finish these two jobs first
 
-* We might add ghost agents if:
+* We might add ghost agents (unlikely) if:
     1. Stage 1. is satisfied.
     2. Multi-agent environment is implemented.

@@ -1,5 +1,8 @@
 import pygame
 import os
+import numpy as np
+
+from scipy.spatial import cKDTree
 
 from pygame.locals import *
 from .constants import *
@@ -39,6 +42,9 @@ class GameController(object):
         self.score = 0
 
         self.reward = 0
+        self.pacmanatepellet = 0
+        self.pacmanwaiteatpellettimer = 0.0
+        self.gobacktododgeghost = True
 
         self.textgroup = TextGroup()
         self.lifesprites = LifeSprites(self.lives)
@@ -50,6 +56,7 @@ class GameController(object):
         self.mazedata = MazeData()
         self.assetpath = "assets/"
         self.clockCycle = (int)(1000/speedup)
+
 
     def setBackground(self):
         self.background_norm = pygame.surface.Surface(SCREENSIZE).convert()
@@ -85,6 +92,8 @@ class GameController(object):
         self.mazedata.obj.denyGhostsAccess(self.ghosts, self.nodes)
         self.readytimer = 0
         self.getready = True
+        self.availablepellets = [pellet.position.asTuple() for pellet in self.pellets.pelletList]
+        self.pellettree = cKDTree(self.availablepellets)
 
     def update(self):
         dt = self.clock.tick(30) / self.clockCycle
@@ -95,7 +104,7 @@ class GameController(object):
             self.ghosts.update(dt)      
             if self.fruit is not None:
                 self.fruit.update(dt)
-            self.checkPelletEvents()
+            self.checkPelletEvents(dt)
             self.checkGhostEvents()
             self.checkFruitEvents()
 
@@ -125,10 +134,42 @@ class GameController(object):
         afterPauseMethod = self.pause.update(dt)
         if afterPauseMethod is not None:
             afterPauseMethod()
+
+        distance = self.getMinDistanceFromGhosts()
+        if distance < 64:
+            self.reward -= 3
+            self.gobacktododgeghost = True
+        else:
+            self.gobacktododgeghost = False
+            
+
         self.checkEvents()
         self.render()
-       # if self.reward == 0:
-       #     self.reward = -2
+        if self.reward == 0:
+            self.reward = -2
+            if self.gobacktododgeghost == False:
+                self.penalizeWalkingBackAndForth()
+        else:
+            self.pacman.facinghist.clear()
+            
+
+    def penalizeWalkingBackAndForth(self):
+        direction = self.pacman.direction
+        if direction == STOP:
+            self.reward -= 3
+            return
+        opposite = -direction
+        if opposite in self.pacman.facinghist:
+            self.reward -= 2
+
+    def getMinDistanceFromGhosts(self):
+        min = np.inf
+        for ghost in self.ghosts.ghosts:
+            if ghost.mode.current != FREIGHT:
+                d = np.abs(self.pacman.position.x - ghost.position.x) + np.abs(self.pacman.position.y - ghost.position.y)
+                if d < min:
+                    min = d
+        return min
 
     def checkEvents(self):
         for event in pygame.event.get():
@@ -144,13 +185,16 @@ class GameController(object):
                         else:
                             self.textgroup.showText(PAUSETXT)
                             #self.hideEntities()
-
-    def checkPelletEvents(self):
+    
+    def checkPelletEvents(self, dt):
         pellet = self.pacman.eatPellets(self.pellets.pelletList)
         if pellet:
             self.pellets.numEaten += 1
             self.updateScore(pellet.points)
             self.reward += 100
+            self.reward += self.pacmanatepellet
+            self.pacmanatepellet += 1
+
             if self.pellets.numEaten == 30:
                 self.ghosts.inky.startNode.allowAccess(RIGHT, self.ghosts.inky)
             if self.pellets.numEaten == 70:
@@ -164,11 +208,19 @@ class GameController(object):
                 self.reward += 1000
                 self.hideEntities()
                 self.pause.setPause(pauseTime=3, func=self.nextLevel)
+        else:
+            if self.pacmanwaiteatpellettimer >= 1.0:
+                self.pacmanatepellet = 0
+            else:
+                self.pacmanwaiteatpellettimer += dt
+
+
 
     def checkGhostEvents(self):
         for ghost in self.ghosts:
             if self.pacman.collideGhost(ghost):
                 if ghost.mode.current is FREIGHT:
+                    self.reward += 100
                     self.pacman.visible = False
                     ghost.visible = False
                     self.updateScore(ghost.points)                  
@@ -180,13 +232,13 @@ class GameController(object):
                 elif ghost.mode.current is not SPAWN:
                     if self.pacman.alive:
                         self.lives -=  1
-                        self.reward -= 100
+                        self.reward -= 500
                         self.lifesprites.removeImage()
                         self.pacman.die()               
                         self.ghosts.hide()
                         if self.lives <= 0:
                             self.textgroup.showText(GAMEOVERTXT)
-                            self.reward -= 100
+                            self.reward -= 1000
                             self.pause.setPause(pauseTime=3, func=self.restartGame)
                         else:
                             self.pause.setPause(pauseTime=3, func=self.resetLevel)

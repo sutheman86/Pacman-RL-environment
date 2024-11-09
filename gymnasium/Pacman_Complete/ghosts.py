@@ -17,12 +17,12 @@ class Ghost(Entity):
         self.mode = ModeController(self)
         self.blinky = blinky
         self.homeNode = node
-        self.setSpeed(50) # Original speed is 100, in FREIGHT mode, speed is halfed (=50).
+        self.setSpeed(100) # Original speed is 100, in FREIGHT mode, speed is halfed (=50).
 
     def reset(self):
         Entity.reset(self)
         self.points = 200
-        self.setSpeed(50)
+        self.setSpeed(100)
         self.directionMethod = self.goalDirection
 
     def update(self, dt):
@@ -56,11 +56,11 @@ class Ghost(Entity):
     def startFreight(self):
         self.mode.setFreightMode()
         if self.mode.current == FREIGHT:
-            self.setSpeed(25)
+            self.setSpeed(50)
             self.directionMethod = self.randomDirection         
 
     def normalMode(self):
-        self.setSpeed(50)
+        self.setSpeed(100)
         self.directionMethod = self.goalDirection
         self.homeNode.denyAccess(DOWN, self)
 
@@ -120,10 +120,7 @@ class Clyde(Ghost):
         ds = d.magnitudeSquared()
         if ds <= (TILEWIDTH * 8)**2:
             self.scatter()
-        else:
-            self.goal = self.pacman.position + self.pacman.directions[self.pacman.direction] * TILEWIDTH * 4
-
-
+        else: self.goal = self.pacman.position + self.pacman.directions[self.pacman.direction] * TILEWIDTH * 4 
 class GhostGroup(object):
     def __init__(self, node, pacman):
         self.blinky = Blinky(node, pacman)

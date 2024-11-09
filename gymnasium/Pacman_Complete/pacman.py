@@ -1,4 +1,6 @@
 import pygame
+from collections import deque
+
 from pygame.locals import *
 from .vector import Vector2
 from .constants import *
@@ -17,6 +19,7 @@ class Pacman(Entity):
         self.alive = True
         self.sprites = PacmanSprites(self)
         self.facing = LEFT
+        self.facinghist = deque()
         if run.Options.allowUserInput:
             self.directionInputAgent = self.getValidKey
         else:
@@ -54,6 +57,10 @@ class Pacman(Entity):
         else: 
             if self.oppositeDirection(direction):
                 self.reverseDirection()
+        if len(self.facinghist) < 30:
+            self.facinghist.append(direction)
+        else:
+            self.facinghist.popleft()
 
     def getFacing(self):
         # key_pressed = pygame.key.get_pressed()
