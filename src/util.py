@@ -101,7 +101,7 @@ def train(env, agent, stack_frames, img_size, save_path="save", max_steps=100000
             # 確保 loss 為浮點數以便於打印
             if total_step % 8 == 0 or done:
                 print('\rEpisode: {:3d} | Step: {:3d} / {:3d} | Reward: {:.3f} / {:.3f} | Loss: {:.3f} | Epsilon: {:.3f}'\
-                    .format(episode, step, total_step, reward, total_reward, loss, epsilon), end="")
+                    .format(agent.episode, step, total_step, reward, total_reward, loss, epsilon), end="")
 
             if total_step % 4000 == 0:
                 print("\nSave Model ...")
@@ -116,7 +116,7 @@ def train(env, agent, stack_frames, img_size, save_path="save", max_steps=100000
                 print("Done !!")
 
             if done or step > 2000:
-                episode += 1
+                agent.episode += 1
                 print()
                 break
 

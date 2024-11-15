@@ -8,14 +8,14 @@ import torch
 import os
 
 env_name = 'gymnasium_env/PacmanGymEnv'
-env = gymnasium.make(env_name, speedup = 1.0, render_mode='human');
+env = gymnasium.make(env_name, speedup = 2.0, render_mode='human');
 env_pacman = env_wrapper.PacmanEnvWrapper(env, k=4, img_size=(84,84))
 
 stack_frames = 4
 img_size = (84, 84)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model_variant = "Double"
+model_variant = "DoubleDueling"
 
 if model_variant == "DoubleDueling":
     agent = dqn.DeepQNetwork(
@@ -49,5 +49,5 @@ gif_dif = os.path.join(os.getcwd(), '..', 'GIF');
 
 agent.save_load_model(op="load", path=save_dir, fname="qnet.pt")
 env_pacman = env_wrapper.PacmanEnvWrapper(env, k=4, img_size=(84,84))
-img_buffer = util.play(env_pacman, agent, stack_frames, img_size, 0.2)
+img_buffer = util.play(env_pacman, agent, stack_frames, img_size, 0.0)
 util.save_gif(img_buffer, "eval.gif")

@@ -17,7 +17,7 @@ stack_frames = 4
 img_size = (84, 84)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model_variant = "Double"
+model_variant = "DoubleDueling"
 
 if model_variant == "DoubleDueling":
     agent = dqn.DeepQNetwork(

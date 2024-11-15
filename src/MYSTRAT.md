@@ -61,10 +61,6 @@
 
 #### Minor Changes
 
-##### Reward Move Back
-
-* If pacman is too close to any ghost, moving opposite direction gets reward.
-    * If moving to opposite direction for one second (30 frame) could get rid of any ghost, then reward is given
 
 ##### Better Distance Metric
 
@@ -73,14 +69,44 @@
 
 #### Major Changes
 
+##### Escape From Ghosts
+
+* If pacman is too close to any ghost, moving opposite direction gets reward.
+    * If moving to opposite direction for one second (30 frame) could get rid of any ghost, then reward is given
+
 ##### Pellet Distance
 
-* If pellet were close enough to pacman within certain threshold, then pacman agent receive reward.
+> The cKDTree part is implemented, but reward hasn't been calculated yet.
+
+* If pellet were close enough to pacman within certain threshold, then agent receive `2` points each tick.
+
+* Implementation: Use `cKDTree` from `scipy` (You'll need to install `scipy`)
+
+Steps
+
+1. keep all pellets in a list (`self.availablepellets`)
+2. build cKDTree `self.pellettree` based on `self.availablepellets`
+3. for each tick:
+    1. if a pellet is eaten, then rebuild the cKDTree
+        > It won't lead to any noticable performance drop, don't worry.
+    2. if not:
+        * get closest pellet to pacman
+        * calculate its manhattan distance
+        * if the distance is within a certain radius, agent receive reward.
 
 ##### Scare Ghosts away
 
-* Note that ghost in `FREIGHT` mode will try to escape pacman
-* when pacman eats power pellet, if within a certain radius, the ghost is freightened, then agent receive reward.
+> reference: [paper](https://cs229.stanford.edu/proj2017/final-reports/5241109.pdf)
+
+* Ghosts will try to run away from pacman when enetering `FREIGHT` mode.
+* So Pacman can also "escape" from ghosts by eating power pellet when ghosts are nearby.
+
+If pacman ate any power pellets:
+1. Check distance between Pacman and all ghosts.
+2. for each ghost:
+    * if ghost is within a certain radius, agent receives a reward.
+    * The reward is given **2** times maximum.
+
 
 ##### Apply Binary Logic
 

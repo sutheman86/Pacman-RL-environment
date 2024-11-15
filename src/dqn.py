@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from torch._prims_common import check
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
@@ -113,11 +114,14 @@ class DeepQNetwork():
         self.qnet_target = qnet(self.input_shape, self.n_actions).to(self.device)
         self.qnet_target.eval()
         self.optimizer = optim.RMSprop(self.qnet_eval.parameters(), lr=self.lr)
+        self.episode = 0
+        self.qval = 0
 
     def choose_action(self, state, epsilon=0):
         # 將狀態轉換為 FloatTensor 並增加 batch 維度
         state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
         actions_value = self.qnet_eval.forward(state)
+        self.qval = actions_value
         if np.random.uniform() > epsilon:  # greedy
             action = torch.max(actions_value, 1)[1].data.cpu().numpy()[0]
         else:  # random
@@ -156,7 +160,6 @@ class DeepQNetwork():
         self.loss.backward()
         self.optimizer.step()
         self.learn_step_counter += 1
-
         return self.loss.detach().cpu().numpy()
 
 
@@ -195,6 +198,7 @@ class DeepQNetwork():
                 'optimizer_state_dict': self.optimizer.state_dict(),
                 'learn_step_counter': self.learn_step_counter,
                 'memory_counter': self.memory_counter,
+                'episode': self.episode,
             }
             torch.save(checkpoint, file_path)
             print(f"Model saved successfully at {file_path}")
@@ -219,6 +223,7 @@ class DeepQNetwork():
                 # 選擇性地加載學習計數
                 self.learn_step_counter = checkpoint.get('learn_step_counter', 0)
                 self.memory_counter = checkpoint.get('memory_counter', 0)
+                self.episode = checkpoint.get('episode', 0)
 
                 print("Model loaded successfully from", file_path)
                 return {'learn_step_counter': self.learn_step_counter, 'memory_counter': self.memory_counter}
