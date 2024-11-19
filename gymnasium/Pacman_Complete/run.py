@@ -2,13 +2,13 @@ import pygame
 import os
 import numpy as np
 
-from scipy.spatial import cKDTree
+from collections import deque
 
 from pygame.locals import *
 from .constants import *
 from .pacman import Pacman
 from .nodes import NodeGroup
-from .pellets import PelletGroup
+from .pellets import Pellet, PelletGroup
 from .ghosts import GhostGroup
 from .fruit import Fruit
 from .pauser import Pause
@@ -21,6 +21,7 @@ class Options:
     allowUserInput = False
     def __init__(self, allowUserInput=False):
         self.allowUserInput = allowUserInput
+
 
 class GameController(object):
     def __init__(self, speedup=1.0, headless=False):
@@ -41,11 +42,6 @@ class GameController(object):
         self.lives = 3
         self.score = 0
 
-        self.reward = 0
-        self.pacmanatepellet = 0
-        self.pacmanwaiteatpellettimer = 0.0
-        self.gobacktododgeghost = True
-
         self.textgroup = TextGroup()
         self.lifesprites = LifeSprites(self.lives)
         self.flashBG = False
@@ -57,6 +53,17 @@ class GameController(object):
         self.assetpath = "assets/"
         self.clockCycle = (int)(1000/speedup)
 
+        ### REWARD: Related attirbutes to calculating rewards
+
+        # See MAZE.md.
+        self.accessibletypes = ['.', '+', ' ', 'p', 'P', 'n', '-', '|']
+        self.pellettypes = ['.', '+', 'p', 'P']
+
+        self.reward = 0
+        self.pacmanatepellet = 0
+        self.pacmanwaiteatpellettimer = 0.0
+        self.gobacktododgeghost = True
+        ### REWARD_END
 
     def setBackground(self):
         self.background_norm = pygame.surface.Surface(SCREENSIZE).convert()
@@ -92,8 +99,12 @@ class GameController(object):
         self.mazedata.obj.denyGhostsAccess(self.ghosts, self.nodes)
         self.readytimer = 0
         self.getready = True
-        self.availablepellets = [pellet.position.asTuple() for pellet in self.pellets.pelletList]
-        self.pellettree = cKDTree(self.availablepellets)
+
+        ### REWARD: Related attributes to calculate rewards
+        self.lastmindisttoghost = np.inf
+        self.escaping = 0
+        self.mazebuffer = self.mazesprites.data.copy()
+        ### REWARD_END
 
     def update(self):
         dt = self.clock.tick(30) / self.clockCycle
@@ -110,7 +121,7 @@ class GameController(object):
 
         if self.pacman.alive:
             if not self.pause.paused:
-                self.pacman.update(dt)
+                self.reward += self.pacman.update(dt)
         else:
             self.pacman.update(dt)
 
@@ -136,23 +147,35 @@ class GameController(object):
             afterPauseMethod()
 
         distance = self.getMinDistanceFromGhosts()
-        if distance < 64:
+        self.closeToGhost = (distance < 5)
+        
+        # REWARD_ADVANCED_3
+        if not self.closeToGhost and self.reward <= 0:
+            self.penalizeWalkingBackAndForth()
+        # REWARD_END
+
+        # REWARD_ADVANCED_2
+        if self.closeToGhost:
             self.reward -= 3
-            self.gobacktododgeghost = True
+        # REWARD_END
+
+        # REWARD_ADVANCED_5
+        if distance < 10 and distance > self.lastmindisttoghost:
+            self.escaping += 1
+            if self.escaping >= 30:
+                self.reward += 2
         else:
-            self.gobacktododgeghost = False
+            self.escaping = 0
+
+        self.lastmindisttoghost = distance
+        # REWARD_END
             
 
         self.checkEvents()
         self.render()
-        if self.reward == 0:
-            self.reward = -2
-            if self.gobacktododgeghost == False:
-                self.penalizeWalkingBackAndForth()
-        else:
-            self.pacman.facinghist.clear()
-            
 
+
+    # REWARD_ADVANCED_3
     def penalizeWalkingBackAndForth(self):
         direction = self.pacman.direction
         if direction == STOP:
@@ -161,15 +184,64 @@ class GameController(object):
         opposite = -direction
         if opposite in self.pacman.facinghist:
             self.reward -= 2
+    # REWARD_END
 
+    # REWARD_ADVANCED_2
     def getMinDistanceFromGhosts(self):
+        px = int(self.pacman.position.x/TILEWIDTH)
+        py = int(self.pacman.position.y/TILEHEIGHT)
         min = np.inf
         for ghost in self.ghosts.ghosts:
-            if ghost.mode.current != FREIGHT:
-                d = np.abs(self.pacman.position.x - ghost.position.x) + np.abs(self.pacman.position.y - ghost.position.y)
-                if d < min:
-                    min = d
+            cx = int(ghost.position.x/TILEWIDTH)
+            cy = int(ghost.position.y/TILEHEIGHT)
+            manhattan = np.abs(cx - px) + np.abs(cy - py)
+            dist = manhattan
+            if manhattan < 5:
+                if 5 < min <= np.inf:
+                    actual = self.getGhostPacmanDistance(ghost) 
+                    if actual > manhattan:
+                        dist = actual
+            if dist < min:
+                min = dist
         return min
+    # REWARD_END
+
+    # REWARD_BASIC_5 & REWARD_ADVANCED_2
+    def getGhostPacmanDistance(self, ghost):
+        px = int(self.pacman.position.x / TILEWIDTH)
+        py = int(self.pacman.position.y / TILEHEIGHT)
+
+        gx = int(ghost.position.x / TILEWIDTH)
+        gy = int(ghost.pacman.position.y / TILEHEIGHT)
+
+        queue = deque()
+        queue.append(((px, py), 0))
+        visited = set()
+        visited.add(((px, py)))
+
+        min_distance = 999999
+
+        while queue:
+            cur, dist = queue.popleft()
+            
+            if dist > 20:
+                min_distance = 20
+                break
+
+            if (cur[0] == gx) and (cur[1] == gy):
+                min_distance = dist
+                break
+
+            x = cur[0]
+            y = cur[1]
+            direction = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
+            for cx, cy in direction:
+                if self.isInRange(cx, cy):
+                    if self.isAccessible(cx, cy) and (cx, cy) not in visited:
+                        queue.append(((cx, cy), dist+1))
+                        visited.add((cx, cy))
+        return min_distance
+    # REWARD_END
 
     def checkEvents(self):
         for event in pygame.event.get():
@@ -189,32 +261,113 @@ class GameController(object):
     def checkPelletEvents(self, dt):
         pellet = self.pacman.eatPellets(self.pellets.pelletList)
         if pellet:
+
             self.pellets.numEaten += 1
             self.updateScore(pellet.points)
+
+            # REWARD_BASIC_1:
             self.reward += 100
-            self.reward += self.pacmanatepellet
-            self.pacmanatepellet += 1
+            # REWARD_END
+
+            #REWARD_ADVANCED_1: calculate reward
+            if not self.closeToGhost:
+                self.reward += self.pacmanatepellet
+                self.pacmanatepellet += 1
+            # REWARD_END
 
             if self.pellets.numEaten == 30:
                 self.ghosts.inky.startNode.allowAccess(RIGHT, self.ghosts.inky)
             if self.pellets.numEaten == 70:
                 self.ghosts.clyde.startNode.allowAccess(LEFT, self.ghosts.clyde)
+
             self.pellets.pelletList.remove(pellet)
+            self.mazebuffer[pellet.my][pellet.mx] = ' '
+
+
             if pellet.name == POWERPELLET:
                 self.ghosts.startFreight()
-                self.reward += 10
+                count = 0
+                # REWARD_BASIC_5
+                for g in self.ghosts.ghosts:
+                    dist = self.getGhostPacmanDistance(g)
+                    if dist < 5 and count < 2:
+                        self.reward += 20
+                # REWARD_END
+                
             if self.pellets.isEmpty():
                 self.flashBG = True
+
+                # REWARD_BASIC_3: Finish Level (no pellets left)
                 self.reward += 1000
+                # REWARD_END
+
                 self.hideEntities()
                 self.pause.setPause(pauseTime=3, func=self.nextLevel)
         else:
+            # REWARD_ADVANCED_1:
             if self.pacmanwaiteatpellettimer >= 1.0:
                 self.pacmanatepellet = 0
             else:
                 self.pacmanwaiteatpellettimer += dt
+            # REWARD_END
 
+            # REWARD_ADVANCED_2: Close to pellets (if pacman isn't eating pellet)
+            if not self.closeToGhost:
+                dist = self.checkClosestPellet()
+                if dist < 4:
+                    self.reward += 2
+            # REWARD_END
+    
+    # REWARD_ADVANCED_4
+    def checkClosestPellet(self):
+        px = int(self.pacman.position.x / TILEWIDTH)
+        py = int(self.pacman.position.y / TILEHEIGHT)
+        queue = deque()
+        queue.append(((px, py), 0))
+        visited = set()
+        visited.add(((px, py)))
 
+        min_distance = 999999
+
+        while queue:
+            cur, dist = queue.popleft()
+            
+            if dist > 20:
+                min_distance = 20
+                break
+
+            if self.isPellet(cur[0], cur[1]):
+                min_distance = dist
+                break
+
+            x = cur[0]
+            y = cur[1]
+            direction = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
+            for cx, cy in direction:
+                if self.isInRange(cx, cy):
+                    if self.isAccessible(cx, cy) and (cx, cy) not in visited:
+                        queue.append(((cx, cy), dist+1))
+                        visited.add((cx, cy))
+        return min_distance
+    # REWARD_END
+
+    # REWARD_ADVANCED_4
+    def isInRange(self, x, y):
+        if (0 <= x < len(self.mazebuffer[0])) and (0 <= y < len(self.mazebuffer)): 
+            return True
+        return False
+    # REWRAD_END
+
+    # REWARD_ADVANCED_4
+    def isAccessible(self, x, y):
+        return self.mazebuffer[y][x] in self.accessibletypes
+    # REWRAD_END
+
+    # REWARD_ADVANCED_4
+    def isPellet(self, x, y):
+        return self.mazebuffer[y][x] in self.pellettypes
+    # REWRAD_END
+            
 
     def checkGhostEvents(self):
         for ghost in self.ghosts:
@@ -232,7 +385,11 @@ class GameController(object):
                 elif ghost.mode.current is not SPAWN:
                     if self.pacman.alive:
                         self.lives -=  1
+
+                        # REWARD_BASIC_4: Pacman killed by ghost
                         self.reward -= 500
+                        # REWARD_END
+
                         self.lifesprites.removeImage()
                         self.pacman.die()               
                         self.ghosts.hide()
@@ -280,7 +437,7 @@ class GameController(object):
 
     def restartGame(self):
         self.lives = 3
-        self.level = 1
+        self.level = 0
         self.pause.paused = True
         self.getready = True
         self.readytimer = 0
@@ -307,7 +464,6 @@ class GameController(object):
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
-        #self.nodes.render(self.screen)
         self.pellets.render(self.screen)
         if self.fruit is not None:
             self.fruit.render(self.screen)

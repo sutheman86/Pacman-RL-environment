@@ -36,7 +36,7 @@
 
 * Install required packages using pip
     ```
-    pip install babel copier Flask-Caching gym-notices gymnasium typing matplotlib
+    pip install babel copier Flask-Caching gym-notices gymnasium typing matplotlib scipy
     ```
     * note that `pygame` package is already installed as requirement for `gymnasium`
 

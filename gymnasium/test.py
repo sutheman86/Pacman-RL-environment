@@ -10,7 +10,7 @@ from PIL import Image
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
-env = gym.make('gymnasium_env/PacmanGymEnv', speedup=5,render_mode='human')
+env = gym.make('gymnasium_env/PacmanGymEnv', speedup=4.0,render_mode='human')
 obs, info = env.reset()
 preprocessed_frame = []
 output_dir = "../GIF/"

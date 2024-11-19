@@ -38,6 +38,7 @@ class Pacman(Entity):
         self.direction = STOP
 
     def update(self, dt):	
+        reward = 0
         self.sprites.update(dt)
         self.position += self.directions[self.direction]*self.speed*dt
         direction = self.directionInputAgent()
@@ -53,6 +54,7 @@ class Pacman(Entity):
 
             if self.target is self.node:
                 self.direction = STOP
+                reward = -0.5
             self.setPosition()
         else: 
             if self.oppositeDirection(direction):
@@ -61,6 +63,7 @@ class Pacman(Entity):
             self.facinghist.append(direction)
         else:
             self.facinghist.popleft()
+        return reward
 
     def getFacing(self):
         # key_pressed = pygame.key.get_pressed()

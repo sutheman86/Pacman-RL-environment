@@ -12,6 +12,8 @@ class Pellet(object):
         self.collideRadius = 2 * TILEWIDTH / 16
         self.points = 10
         self.visible = True
+        self.mx = column
+        self.my = row
         
     def render(self, screen):
         if self.visible:

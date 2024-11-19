@@ -1,7 +1,30 @@
 # Pacman-RL-environment
 
+### Reward Design: [See src/MYSTRAT.md](./src/MYSTRAT.md)
+
 ### Installation:  
 * **[See README/install.md](./README/INSTALL.md)**
+
+### Ongoing Experiments
+
+#### Method
+* I'll train each model for 8~9 hours
+* Then I'll evaluate the model for 10 times, taking the mean score (not reward). I'll record the success rate (pacman passed first level)
+
+- [ ] (Working) Compare **Dueling Double DQN** and **Double DQN**
+    > Reward keeps the same.
+
+* For all of the experiments below, I'll pick Dueling or no-Dueling DQN depends on the performance.
+
+* Major changes, experiments must be done
+- [ ] Compare With **Close To Pellets** Metric and without it.
+- [ ] Compare With **Scare Ghosts away** and without it.
+- [ ] Compare With **Binary Logic** and without it.
+- [ ] Compare with **Reward Move back** and without it.
+    
+* Minor changes, I'll apply it directly if there's no time to experiment it.
+- [ ] Compare with using **Manhatton distance** and **Hybrid metric**
+
 
 ### Changes done on `Pacman_Complete`
 
@@ -16,7 +39,6 @@ Here are ***GAME LOGIC*** changes done for training.
     * `reset(self)`: changed to `self.setSpeed(50)`, originally it's `self.setSpeed(100)`
     * `startFreight(self)`: changed to `self.setSpeed(25)`, originally it's `self.setSpeed(25)`
     * `normalMode(self)`: changed to `self.setSpeed(50)`, originally it's `self.setSpeed(100)`
-
 
 
 ### TODOs
@@ -56,6 +78,7 @@ Here are ***GAME LOGIC*** changes done for training.
 
 - [ ] Stage 2. Add one ghost into the game:
     - [ ] Stage 2.1: the ghost is half of its original speed.
+        > Almost finished it within 160000 training steps.
     - [ ] Stage 2.2: ghost is in its original speed.
 
 - [ ] etc. etc. Finish these two jobs first
