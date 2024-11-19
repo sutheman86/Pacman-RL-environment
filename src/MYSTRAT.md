@@ -1,21 +1,45 @@
 # My Reward Strategy
 
-### Normal Reward
+Most rewards are calculated in `Pacman_Complete/run.py`, to see the code related to such reward, search `REWARD` when tracing code.
+> e.g. search `REWARD_BASIC_1` to find code about calculate eaten pellet reward.
 
-* Eaten pellet: `100` for each pellet
-* Eaten Power pellet: `120` for each pellet
-* Eaten ghost: `100` for each ghost
+### Basic Rewards: `REWARD_BASIC`
 
-### Normal Penalty
+* `REWARD_BASIC_1` &rarr; **eaten pellet**: `100` for each pellet
 
-* Killed: `-500` for each death
-* Game over: `-1000` for each occurence
-* Not getting any reward: `-2` for each tick
+* <i><s>**eaten power pellets**: `120` for each pellet</i></s> 
+    * **Should be replaced with scare ghost away reward**
+        > Pacman should only eat pellet when ghosts are nearby.
 
+* `REWARD_BASIC_2` &rarr; **eaten ghost** : `100` for each ghost
 
-### Extra Reward/Penalty
+* `REWARD_BASIC_3` &rarr; **Killed**: `-500` for each death
 
-#### **Pellet Bonus**: 
+* <s>**Game over**: `-1000` for each occurence</s>
+    > No need to calculate this anymore.
+
+* `REWARD_BASIC_4` &rarr; **Not getting any reward**: `-2` for each tick
+
+##### `REWARD_BASIC_5`: Scare Ghosts away
+
+> reference: [paper](https://cs229.stanford.edu/proj2017/final-reports/5241109.pdf)
+
+* Ghosts will try to run away from pacman when enetering `FREIGHT` mode.
+* So Pacman can also "escape" from ghosts by eating power pellet when ghosts are nearby.
+
+If pacman ate any power pellets:
+1. Check distance between Pacman and all ghosts.
+2. for each ghost:
+    * if ghost is within a certain radius, agent receives a reward.
+    * The reward is given **2** times maximum. (Scare 2 ghosts away at most)
+
+* `REWARD_BASIC_6`: Incorrect input (agent's direction of choice collides with walls)
+    * penalize `0.5` points for each time.
+    * Please go to `pacman.py` to see it.
+
+### Extra Reward: `REWARD_ADVANCED`
+
+#### `REWARD_ADVANCED_1`: **Pellet Bonus**
 
 * For each pellet eaten, an counter will increase by 1.
 * When eaten pellet, reward will be added by this counter value
@@ -29,22 +53,35 @@
 * The counter is `self.pacmanatepellet`
 * The counter will reset to 0 when no pellet is eaten for `1` second. (if no speed up is applied)
 
-#### Distance
+#### `REWARD_ADVANCED_2`: Distance
 
 * If pacman is too close to any of the ghosts, a penalty is received
 
-* Distance: Use *Manhattan Distance* as metric
-    > Cannot use Euclidean Distance as metric because Pacman and Ghost cannot move diagnolly
-    * Formula:
-    $$D = |x_{pacman} - x_{ghost}| + |y_{pacman} - y_{ghost}|$$
+* **Grid**: record position information
+    * The whole maze is represented as grid, it's stored in `self.mazesprites.data`. I copy it to `self.mazebuffer` for edit.
+    * Grid position of any object can be transformed from pixel position.
+        ```python
+        pacman.col = int(pacman.position.x / TILEWIDTH)
+        pacman.row = int(pacman.position.x / TILEHEIGHT)
+        ```
+    * There's some error when rounded to `int`, but it's close enough (8 pixels at most)
 
-* Threshold: `60` pixel
-* I really want to use $A^{*}$ as metric, but right now I don't have time to implement it. And I'm afraid it would be too computationally expensive.
+
+* **Distance Metric**: Manhattan for estimation, use BFS if close.
+    $$ Distance_{Manhattan} \le Distance_{actual}$$
+    * &rarr; Manhattan would only **underestimate** distance between two nodes
+
+    * Manhattan formula:
+        $$|x_a - x_b| + |y_a - y_b|$$
+    * BFS: please refer to code. If `dist > 5`, return 10 directly (anything &gt; 5), 
+        * doing so could prevent spending too much time calculate uneccessary value.
+
+* **Threshold**: `5` tiles.
 
 * the penalty value is `3` for each tick
     > So if pacman is too close with Blinky for 1 second, he will be penalized for `90` points`
 
-#### Wondering without Reward
+#### `REWARD_ADVANCED_3`: Wondering without Reward
 
 * Pacman will receive penalty when he moves back &amp; forth and receive no reward.
 * A bonus penalty of `2` points will be received for each tick.
@@ -54,60 +91,19 @@
 
 * **Exception**: Moving to escape ghost (If ghost were too close, it makes sense to give up rewards).
 
-### TO-DOs
+#### `REWARD_ADVANCED_4`: Pellet Distance
 
-* If the reward change is major, we might have to train model from scratch.
-
-
-#### Minor Changes
-
-
-##### Better Distance Metric
-
-* Use A* to calculate distance.
-* Will use Manhattan Distance to roughly estimate distance, then if rough distance is too close. Use $A^{*}$ to calculate exact distance
-
-#### Major Changes
-
-##### Escape From Ghosts
-
-* If pacman is too close to any ghost, moving opposite direction gets reward.
-    * If moving to opposite direction for one second (30 frame) could get rid of any ghost, then reward is given
-
-##### Pellet Distance
-
-> The cKDTree part is implemented, but reward hasn't been calculated yet.
+> I found out that `cKDTree` is not required for this process
 
 * If pellet were close enough to pacman within certain threshold, then agent receive `2` points each tick.
 
-* Implementation: Use `cKDTree` from `scipy` (You'll need to install `scipy`)
+* **Threshold**: `4` grid distance.
 
-Steps
+* Method: again, use **BFS**, setting maximum distance to prevent uneccessary calculation.
 
-1. keep all pellets in a list (`self.availablepellets`)
-2. build cKDTree `self.pellettree` based on `self.availablepellets`
-3. for each tick:
-    1. if a pellet is eaten, then rebuild the cKDTree
-        > It won't lead to any noticable performance drop, don't worry.
-    2. if not:
-        * get closest pellet to pacman
-        * calculate its manhattan distance
-        * if the distance is within a certain radius, agent receive reward.
+#### `REWARD_ADVANCED_5`: Escape From Ghosts
 
-##### Scare Ghosts away
-
-> reference: [paper](https://cs229.stanford.edu/proj2017/final-reports/5241109.pdf)
-
-* Ghosts will try to run away from pacman when enetering `FREIGHT` mode.
-* So Pacman can also "escape" from ghosts by eating power pellet when ghosts are nearby.
-
-If pacman ate any power pellets:
-1. Check distance between Pacman and all ghosts.
-2. for each ghost:
-    * if ghost is within a certain radius, agent receives a reward.
-    * The reward is given **2** times maximum.
-
-
-##### Apply Binary Logic
-
-* Combine *Ghost is nearby* and *Pellet is nearby*
+* By comparing distance of last tick and this tick. This makes things easier.
+* `self.escaping`: A counter counting continuous time period of pacman escaping from the ghosts.
+* If pacman stay escaing for one second or more (`self.escaping` > 30), reward `2` points for each tick.
+* This only works if pacman is decently close to ghosts (`10` grid distance)

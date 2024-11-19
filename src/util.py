@@ -103,7 +103,7 @@ def train(env, agent, stack_frames, img_size, save_path="save", max_steps=100000
                 print('\rEpisode: {:3d} | Step: {:3d} / {:3d} | Reward: {:.3f} / {:.3f} | Loss: {:.3f} | Epsilon: {:.3f}'\
                     .format(agent.episode, step, total_step, reward, total_reward, loss, epsilon), end="")
 
-            if total_step % 4000 == 0:
+            if total_step % 2000 == 0:
                 print("\nSave Model ...")
                 agent.save_load_model(
                     op="save",
