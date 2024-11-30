@@ -13,12 +13,18 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 class DuelingQNet(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(DuelingQNet, self).__init__()
+        self.layers = {
+                "layer1": nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
+                "layer2": nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
+                "layer3": nn.Conv2d(64, 64, kernel_size=3, stride=1),
+        }
+        print(self.layers["layer1"])
         self.conv = nn.Sequential(
-            nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
+            self.layers["layer1"],
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2),
+            self.layers["layer2"],
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1),
+            self.layers["layer3"],
             nn.ReLU(),
         )
 
@@ -126,7 +132,7 @@ class DeepQNetwork():
             action = torch.max(actions_value, 1)[1].data.cpu().numpy()[0]
         else:  # random
             action = np.random.randint(0, self.n_actions)
-        return action
+        return action, actions_value
 
     def learn(self):
         # 替换目标网络参数
@@ -149,6 +155,7 @@ class DeepQNetwork():
         q_curr_eval = self.qnet_eval(b_s).gather(1, b_a)
         q_next_target = self.qnet_target(b_s_).detach()
         q_next_eval = self.qnet_eval(b_s_).detach()
+
         next_state_values = q_next_target.gather(1, q_next_eval.max(1)[1].unsqueeze(1))  # DDQN
         q_curr_recur = b_r + (1 - b_d) * self.gamma * next_state_values
 
@@ -226,7 +233,7 @@ class DeepQNetwork():
                 self.episode = checkpoint.get('episode', 0)
 
                 print("Model loaded successfully from", file_path)
-                return {'learn_step_counter': self.learn_step_counter, 'memory_counter': self.memory_counter}
+                return {'learn_step_counter': self.learn_step_counter, 'episode': self.episode}
 
             except FileNotFoundError:
                 print(f"No saved model found at {file_path}, starting fresh.")
@@ -234,4 +241,4 @@ class DeepQNetwork():
                 print(f"Error loading model: {e}")
 
             # 如果未成功加載模型或發生錯誤，返回初始狀態
-        return {'learn_step_counter': 0, 'memory_counter': 0} 
+        return {'learn_step_counter': 0, 'episode': 0} 

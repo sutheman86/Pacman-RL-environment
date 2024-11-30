@@ -24,6 +24,9 @@ class Entity(object):
     def setPosition(self):
         self.position = self.node.position.copy()
 
+    def positionToGridCoord(self):
+        return (int(self.position.x/TILEWIDTH), int(self.position.y/TILEHEIGHT))
+
     def update(self, dt):
         self.position += self.directions[self.direction]*self.speed*dt
          

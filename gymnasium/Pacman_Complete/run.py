@@ -16,6 +16,7 @@ from .text import TextGroup
 from .sprites import LifeSprites
 from .sprites import MazeSprites
 from .mazedata import MazeData
+from .vector import Vector2
 
 class Options:
     allowUserInput = False
@@ -28,6 +29,9 @@ class GameController(object):
         if headless:
             os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
+
+        self.debug_mode = False
+
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
         self.background_norm = None
@@ -52,6 +56,14 @@ class GameController(object):
         self.mazedata = MazeData()
         self.assetpath = "assets/"
         self.clockCycle = (int)(1000/speedup)
+        
+        ### OBSERVATION: Grid-based States
+        self.grid_state = np.zeros((NROWS, NCOLS))
+        self.grid_state_position = np.zeros((NROWS, NCOLS))
+        self.ret_state = np.zeros((NROWS, NCOLS))
+        self.debug_print_timer = 0
+        self.old_pacman_position = (0, 0)
+        self.old_ghost_position = {}
 
         ### REWARD: Related attirbutes to calculating rewards
 
@@ -64,6 +76,7 @@ class GameController(object):
         self.pacmanwaiteatpellettimer = 0.0
         self.gobacktododgeghost = True
         ### REWARD_END
+        np.set_printoptions(threshold=6969699, linewidth=6969699)
 
     def setBackground(self):
         self.background_norm = pygame.surface.Surface(SCREENSIZE).convert()
@@ -83,8 +96,14 @@ class GameController(object):
         self.mazedata.obj.setPortalPairs(self.nodes)
         self.mazedata.obj.connectHomeNodes(self.nodes)
         self.pacman = Pacman(self.nodes.getNodeFromTiles(*self.mazedata.obj.pacmanStart))
+
+        self.old_pacman_position = self.pacman.positionToGridCoord()
+
         self.pellets = PelletGroup(self.assetpath + self.mazedata.obj.name+".txt")
         self.ghosts = GhostGroup(self.nodes.getStartTempNode(), self.pacman)
+        
+        for g in self.ghosts.ghosts:
+            self.old_ghost_position[g.name] =  g.positionToGridCoord()
 
         self.ghosts.pinky.setStartNode(self.nodes.getNodeFromTiles(*self.mazedata.obj.addOffset(2, 3)))
         self.ghosts.inky.setStartNode(self.nodes.getNodeFromTiles(*self.mazedata.obj.addOffset(0, 3)))
@@ -106,6 +125,23 @@ class GameController(object):
         self.mazebuffer = self.mazesprites.data.copy()
         ### REWARD_END
 
+        ### OBSERVATION: Grid-state observation
+        buf = np.array(self.mazebuffer)
+
+        self.grid_state = np.zeros_like(buf, dtype=np.uint8)
+        self.grid_state_position = np.zeros_like(buf, dtype=np.uint8)
+
+        for i in range(buf.shape[0]):
+            for j in range(buf.shape[1]):
+                if buf[i][j].isdigit():
+                    self.grid_state[i][j] = 254
+                elif buf[i][j] in self.pellettypes:
+                    self.grid_state[i][j] = 127
+
+    ### OBSERVATION: Get Grid-State
+    def getGameGridState(self):
+        return self.ret_state.astype(np.uint8), self.grid_state_position
+
     def update(self):
         dt = self.clock.tick(30) / self.clockCycle
         self.textgroup.update(dt)
@@ -122,6 +158,14 @@ class GameController(object):
         if self.pacman.alive:
             if not self.pause.paused:
                 self.reward += self.pacman.update(dt)
+
+                old_px, old_py = self.old_pacman_position
+                self.grid_state_position[old_py][old_px] = 0
+
+                px, py = self.pacman.positionToGridCoord()
+                self.grid_state_position[py][px] = 192
+                self.old_pacman_position = (px, py)
+
         else:
             self.pacman.update(dt)
 
@@ -156,7 +200,7 @@ class GameController(object):
 
         # REWARD_ADVANCED_2
         if self.closeToGhost:
-            self.reward -= 3
+            self.reward -= 8
         # REWARD_END
 
         # REWARD_ADVANCED_5
@@ -169,31 +213,38 @@ class GameController(object):
 
         self.lastmindisttoghost = distance
         # REWARD_END
-            
 
         self.checkEvents()
         self.render()
+
+        self.debug_print_timer += dt
+
+        # OBSERVATION
+        self.ret_state = self.grid_state.copy()
+        self.ret_state[self.grid_state_position != 0] = self.grid_state_position[self.grid_state_position != 0]
+
+       #  if self.debug_print_timer >= 1.0 and self.debug_mode:
+       #      os.system('clear')
+       #      print(self.ret_state)
+       #      self.debug_print_timer = 0.0
 
 
     # REWARD_ADVANCED_3
     def penalizeWalkingBackAndForth(self):
         direction = self.pacman.direction
         if direction == STOP:
-            self.reward -= 3
+            self.reward -= 5
             return
         opposite = -direction
         if opposite in self.pacman.facinghist:
-            self.reward -= 2
-    # REWARD_END
+            self.reward -= 5 # REWARD_END
 
     # REWARD_ADVANCED_2
     def getMinDistanceFromGhosts(self):
-        px = int(self.pacman.position.x/TILEWIDTH)
-        py = int(self.pacman.position.y/TILEHEIGHT)
+        px, py = self.pacman.positionToGridCoord()
         min = np.inf
         for ghost in self.ghosts.ghosts:
-            cx = int(ghost.position.x/TILEWIDTH)
-            cy = int(ghost.position.y/TILEHEIGHT)
+            cx, cy = ghost.positionToGridCoord()
             manhattan = np.abs(cx - px) + np.abs(cy - py)
             dist = manhattan
             if manhattan < 5:
@@ -208,11 +259,9 @@ class GameController(object):
 
     # REWARD_BASIC_5 & REWARD_ADVANCED_2
     def getGhostPacmanDistance(self, ghost):
-        px = int(self.pacman.position.x / TILEWIDTH)
-        py = int(self.pacman.position.y / TILEHEIGHT)
+        px, py = self.pacman.positionToGridCoord()
 
-        gx = int(ghost.position.x / TILEWIDTH)
-        gy = int(ghost.pacman.position.y / TILEHEIGHT)
+        gx, gy = ghost.positionToGridCoord()
 
         queue = deque()
         queue.append(((px, py), 0))
@@ -266,13 +315,13 @@ class GameController(object):
             self.updateScore(pellet.points)
 
             # REWARD_BASIC_1:
-            self.reward += 100
+            self.reward += 50
             # REWARD_END
 
             #REWARD_ADVANCED_1: calculate reward
             if not self.closeToGhost:
                 self.reward += self.pacmanatepellet
-                self.pacmanatepellet += 1
+                self.pacmanatepellet += 0.5
             # REWARD_END
 
             if self.pellets.numEaten == 30:
@@ -282,6 +331,7 @@ class GameController(object):
 
             self.pellets.pelletList.remove(pellet)
             self.mazebuffer[pellet.my][pellet.mx] = ' '
+            self.grid_state[pellet.my][pellet.mx] = 0.0
 
 
             if pellet.name == POWERPELLET:
@@ -371,6 +421,15 @@ class GameController(object):
 
     def checkGhostEvents(self):
         for ghost in self.ghosts:
+
+            # OBSERVATION: UPDATE POSITION OF EACH GHOST IN GRID_POSITION CHANNEL
+            old_gx, old_gy = self.old_ghost_position[ghost.name]
+            self.grid_state_position[old_gy][old_gx] = 0
+
+            gx, gy = ghost.positionToGridCoord()
+            self.grid_state_position[gy][gx] = 64
+            self.old_ghost_position[ghost.name] = (gx, gy)
+
             if self.pacman.collideGhost(ghost):
                 if ghost.mode.current is FREIGHT:
                     self.reward += 100
@@ -395,7 +454,6 @@ class GameController(object):
                         self.ghosts.hide()
                         if self.lives <= 0:
                             self.textgroup.showText(GAMEOVERTXT)
-                            self.reward -= 1000
                             self.pause.setPause(pauseTime=3, func=self.restartGame)
                         else:
                             self.pause.setPause(pauseTime=3, func=self.resetLevel)

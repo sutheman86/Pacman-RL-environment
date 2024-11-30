@@ -38,6 +38,7 @@ class Pacman(Entity):
         self.direction = STOP
 
     def update(self, dt):	
+        # REWARD_BASIC_6: pacman keeps collide with walls
         reward = 0
         self.sprites.update(dt)
         self.position += self.directions[self.direction]*self.speed*dt

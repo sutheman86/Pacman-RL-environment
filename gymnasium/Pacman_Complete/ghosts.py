@@ -7,8 +7,9 @@ from .modes import ModeController
 from .sprites import GhostSprites
 
 class Ghost(Entity):
-    def __init__(self, node, pacman=None, blinky=None):
+    def __init__(self, node, pacman=None, blinky=None, name="Nobody"):
         Entity.__init__(self, node)
+        self.ghost_name = name
         self.name = GHOST
         self.points = 200
         self.goal = Vector2()
@@ -120,14 +121,16 @@ class Clyde(Ghost):
         ds = d.magnitudeSquared()
         if ds <= (TILEWIDTH * 8)**2:
             self.scatter()
-        else: self.goal = self.pacman.position + self.pacman.directions[self.pacman.direction] * TILEWIDTH * 4 
+        else: 
+            self.goal = self.pacman.position + self.pacman.directions[self.pacman.direction] * TILEWIDTH * 4 
+
 class GhostGroup(object):
     def __init__(self, node, pacman):
         self.blinky = Blinky(node, pacman)
         self.pinky = Pinky(node, pacman)
         self.inky = Inky(node, pacman, self.blinky)
         self.clyde = Clyde(node, pacman)
-        self.ghosts = [self.blinky]
+        self.ghosts = [self.blinky, self.inky]
 
     def __iter__(self):
         return iter(self.ghosts)

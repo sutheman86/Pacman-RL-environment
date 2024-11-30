@@ -32,10 +32,10 @@ def rgb_array_loop():
     episode = 0
     for step in range(1000000):  
         action = env.action_space.sample()
-        obs, reward, done, info = env.step(action)
+        obs, reward, terminated, truncated, info = env.step(action)
         #print(f"Step: {step + 1}, Action: {action}, Reward: {reward}, Done: {done}")
         preprocessed_frame.append(obs);
-        if done:
+        if terminated:
             print(f"Episode: {episode}, steps: {step}") 
             if output_GIF: 
                 process_gif(episode)
@@ -58,10 +58,10 @@ def process_gif(episode):
 def human_loop():
     for step in range(1000000):  
         action = env.action_space.sample()
-        obs, reward, done, info = env.step(action)
+        obs, reward, terminated, truncated, info = env.step(action)
         env.render()
         #print(f"Step: {step + 1}, Action: {action}, Reward: {reward}, Done: {done}")
-        if done:
+        if terminated:
             print("Episode finished!")
             print(step)
             env.reset()
