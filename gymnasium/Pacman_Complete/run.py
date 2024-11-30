@@ -149,26 +149,26 @@ class GameController(object):
         distance = self.getMinDistanceFromGhosts()
         self.closeToGhost = (distance < 5)
         
-        # REWARD_ADVANCED_3
-        if not self.closeToGhost and self.reward <= 0:
-            self.penalizeWalkingBackAndForth()
-        # REWARD_END
+        # # REWARD_ADVANCED_3
+        # if not self.closeToGhost and self.reward <= 0:
+        #     self.penalizeWalkingBackAndForth()
+        # # REWARD_END
 
-        # REWARD_ADVANCED_2
-        if self.closeToGhost:
-            self.reward -= 3
-        # REWARD_END
+        # # REWARD_ADVANCED_2
+        # if self.closeToGhost:
+        #     self.reward -= 3
+        # # REWARD_END
 
-        # REWARD_ADVANCED_5
-        if distance < 10 and distance > self.lastmindisttoghost:
-            self.escaping += 1
-            if self.escaping >= 30:
-                self.reward += 2
-        else:
-            self.escaping = 0
+        # # REWARD_ADVANCED_5
+        # if distance < 10 and distance > self.lastmindisttoghost:
+        #     self.escaping += 1
+        #     if self.escaping >= 30:
+        #         self.reward += 2
+        # else:
+        #     self.escaping = 0
 
-        self.lastmindisttoghost = distance
-        # REWARD_END
+        # self.lastmindisttoghost = distance
+        # # REWARD_END
             
 
         self.checkEvents()
@@ -269,10 +269,10 @@ class GameController(object):
             self.reward += 100
             # REWARD_END
 
-            #REWARD_ADVANCED_1: calculate reward
-            if not self.closeToGhost:
-                self.reward += self.pacmanatepellet
-                self.pacmanatepellet += 1
+            # #REWARD_ADVANCED_1: calculate reward
+            # if not self.closeToGhost:
+            #     self.reward += self.pacmanatepellet
+            #     self.pacmanatepellet += 1
             # REWARD_END
 
             if self.pellets.numEaten == 30:
@@ -303,20 +303,20 @@ class GameController(object):
 
                 self.hideEntities()
                 self.pause.setPause(pauseTime=3, func=self.nextLevel)
-        else:
-            # REWARD_ADVANCED_1:
-            if self.pacmanwaiteatpellettimer >= 1.0:
-                self.pacmanatepellet = 0
-            else:
-                self.pacmanwaiteatpellettimer += dt
-            # REWARD_END
+        #else:
+        #    # REWARD_ADVANCED_1:
+        #    if self.pacmanwaiteatpellettimer >= 1.0:
+        #        self.pacmanatepellet = 0
+        #    else:
+        #        self.pacmanwaiteatpellettimer += dt
+        #    # REWARD_END
 
-            # REWARD_ADVANCED_2: Close to pellets (if pacman isn't eating pellet)
-            if not self.closeToGhost:
-                dist = self.checkClosestPellet()
-                if dist < 4:
-                    self.reward += 2
-            # REWARD_END
+        #    # REWARD_ADVANCED_2: Close to pellets (if pacman isn't eating pellet)
+        #    if not self.closeToGhost:
+        #        dist = self.checkClosestPellet()
+        #        if dist < 4:
+        #            self.reward += 2
+        #    # REWARD_END
     
     # REWARD_ADVANCED_4
     def checkClosestPellet(self):
