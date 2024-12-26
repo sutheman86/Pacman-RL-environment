@@ -36,36 +36,6 @@
 
 * Install required packages using pip
     ```
-    pip install babel copier Flask-Caching gym-notices gymnasium typing matplotlib
+    pip install gym-notices gymnasium matplotlib pandas numpy
     ```
     * note that `pygame` package is already installed as requirement for `gymnasium`
-
-* go to `gymnasium` directory
-    ```
-    cd gymnasium
-    ```
-
-* install `gymnasium_env` environment
-    ```
-    pip install -e .
-    ```
-
-### Test
-
-* To test model training, run:
-    ```
-    python test.py
-    ```
-
-* To *run pacman only* , run:
-    ```
-    python gameonly.py
-    ```
-
-### Run `pacman_world.ipynb`
-
-* Open it with vscode, run the cell directly
-
-* vscode should ask you which kernel to use. First, choose `Python Environments`
-
-* Then choose `Pacman-RL-environment`.
