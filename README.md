@@ -1,5 +1,11 @@
 # Pacman-RL-environment
 
+### Introduction:
+
+* This is the repo for Machine Learning 2024 final project of group 25.
+* This repo includes all training code, game code and gymnasium environment.
+* Pac-Man game comes from https://pacmancode.com/
+
 ### Installation:  
 
 1. Setup Virtual Environment
